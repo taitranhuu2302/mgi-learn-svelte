@@ -4,9 +4,8 @@
   import TaskItem from "../components/task-item.svelte";
   import {
     addTasks,
-    clearAll,
     editTask,
-    getTaskFromLocal,
+    setTasks,
     tasks,
   } from "../stores/task-store";
   import { TaskItemStatusType, type TaskItemType } from "../types/task";
@@ -23,6 +22,7 @@
     DESC,
     DEFAULT,
   }
+  export let data;
 
   let task: TaskItemType = {
     id: "",
@@ -44,7 +44,7 @@
   };
 
   onMount(() => {
-    getTaskFromLocal();
+    setTasks(data.tasks);
   });
 
   const setTabActive = (tab: TabActiveType) => {
@@ -53,13 +53,13 @@
 
   const checkActive = (tab: TabActiveType) => tab === $tabActive;
 
-  const handleAddOrEditTask = () => {
+  const handleAddOrEditTask = async () => {
     if (!task.name) return;
 
     if (!task.id) {
-      addTasks(task);
+      await addTasks(task);
     } else {
-      editTask(task);
+      await editTask(task);
     }
 
     resetTask();
@@ -152,12 +152,6 @@
         </li>
       </ul>
     {/key}
-    <button
-      on:click={clearAll}
-      class="p-2 bg-gradient-to-tr from-primary-500 to-primary text-white rounded"
-    >
-      Clear All
-    </button>
   </div>
   <div class="border border-gray-300 my-4" />
   <ul class="task-list">

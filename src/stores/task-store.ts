@@ -1,53 +1,38 @@
-import { get, writable } from "svelte/store";
-import type { TaskItemStatusType, TaskItemType } from "../types/task";
+import { BASE_URL } from "$lib/config";
+import { writable } from "svelte/store";
+import type { TaskItemType } from "../types/task";
 
 export const tasks = writable<TaskItemType[]>([]);
-const KEY = "TASKS";
+const URL = `${BASE_URL}/api/tasks`;
 
-export const getTaskFromLocal = () => {
-  const localTasks = localStorage.getItem(KEY)
-    ? JSON.parse(localStorage.getItem(KEY) as string)
-    : [];
-
-  tasks.set(localTasks);
+export const setTasks = (taskList: TaskItemType[]) => {
+  tasks.set(taskList);
 };
 
-export const setTaskToLocal = () => {
-  localStorage.setItem(KEY, JSON.stringify(get(tasks)));
-};
-
-export const addTasks = (task: TaskItemType) => {
+export const addTasks = async (task: TaskItemType) => {
   const newTask: TaskItemType = {
     ...task,
     id: new Date().getTime().toString(),
     createdAt: new Date(),
   };
 
-  tasks.update((t) => [newTask, ...t]);
-  setTaskToLocal();
+  const data = await fetch(URL, {
+    method: "POST",
+    body: JSON.stringify(newTask),
+  }).then((response) => response.json());
+
+  tasks.set(data);
 };
 
-export const changeStatusTask = (id: string, status: TaskItemStatusType) => {
-  tasks.update((t) =>
-    t.map((item) => {
-      if (item.id === id) {
-        item.status = status;
-      }
-      return item;
-    })
-  );
-  setTaskToLocal();
+export const editTask = async (task: TaskItemType) => {
+  const data = await fetch(`${URL}/${task.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(task),
+  }).then((res) => res.json());
+
+  tasks.set(data);
 };
 
 export const deleteTask = (id: string) => {
   tasks.update((t) => t.filter((item) => item.id !== id));
 };
-
-export const editTask = (task: TaskItemType) => {
-  tasks.update((t) => t.map((item) => (item.id === task.id ? task : item)));
-};
-
-export const clearAll = () => {
-  tasks.set([]);
-  setTaskToLocal();
-}

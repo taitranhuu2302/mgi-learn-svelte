@@ -1,19 +1,22 @@
 <script lang="ts">
   import { clickOutSide } from "$lib/click-outside";
-  import { changeStatusTask, deleteTask } from "../stores/task-store";
+  import { deleteTask, editTask } from "../stores/task-store";
   import { TaskItemStatusType, type TaskItemType } from "../types/task";
 
   export let task: TaskItemType;
   export let getEditTask: (task: TaskItemType) => void;
   let isOpenDropdown: boolean = false;
 
-  const onChangeStatus = () => {
+  const onChangeStatus = async () => {
     const status: TaskItemStatusType =
       task.status === TaskItemStatusType.PENDING
         ? TaskItemStatusType.COMPLETED
         : TaskItemStatusType.PENDING;
-
-    changeStatusTask(task.id, status);
+    const taskUpdate = {
+      ...task,
+      status: status,
+    };
+    await editTask(taskUpdate);
   };
 </script>
 
